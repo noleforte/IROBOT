@@ -10,9 +10,9 @@
       </div>
     </section>
 
-    <!-- Вторая секция - с модальным окном -->
-    <section class="second-section" v-if="showSecondSection">
-      <RobotModal />
+    <!-- Вторая секция - с модальным окном (загружается заранее, но скрыта) -->
+    <section class="second-section" v-if="modalReady" :style="{ display: showSecondSection ? 'flex' : 'none' }">
+      <RobotModal key="robot-modal" />
     </section>
   </div>
   <div v-else class="loading-screen">
@@ -28,6 +28,7 @@ const isScrolling = ref(false)
 const showSecondSection = ref(false)
 const canScroll = ref(true)
 const pageLoaded = ref(false)
+const modalReady = ref(false)
 
 const scrollTexts = [
   'Scroll Down',
@@ -38,7 +39,7 @@ const scrollTexts = [
   'Here we go, nice man, you do this'
 ]
 
-const handleScroll = () => {
+const handleScroll = async () => {
   if (showSecondSection.value || !canScroll.value) return
   
   canScroll.value = false
@@ -52,10 +53,11 @@ const handleScroll = () => {
     setTimeout(() => {
       isScrolling.value = false
       canScroll.value = true
-    }, 5000)
+    }, 2500)
   } else {
     // Переход на вторую секцию
     showSecondSection.value = true
+    await nextTick()
     setTimeout(() => {
       window.scrollTo({
         top: window.innerHeight,
@@ -66,9 +68,31 @@ const handleScroll = () => {
 }
 
 // Предзагрузка компонентов и показ страницы
+onBeforeMount(async () => {
+  // Предзагружаем модалку ДО монтирования страницы
+  try {
+    await import('~/components/RobotModal.vue')
+    modalReady.value = true
+    console.log('Modal preloaded successfully')
+  } catch (error) {
+    console.error('Error preloading modal:', error)
+    modalReady.value = true // Все равно показываем, если ошибка
+  }
+})
+
 onMounted(async () => {
-  // Имитация загрузки модалки и других компонентов
-  await new Promise(resolve => setTimeout(resolve, 500))
+  // Если модалка еще не загружена, ждем
+  if (!modalReady.value) {
+    try {
+      await import('~/components/RobotModal.vue')
+      modalReady.value = true
+    } catch (error) {
+      modalReady.value = true
+    }
+  }
+  
+  // Небольшая задержка для завершения загрузки
+  await new Promise(resolve => setTimeout(resolve, 50))
   pageLoaded.value = true
   
   // Даем время на рендер
