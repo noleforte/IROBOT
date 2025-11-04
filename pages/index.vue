@@ -14,9 +14,42 @@
       <section 
         ref="firstSection"
         class="first-section"
+        :class="{ 'section-scrolling': isScrolling }"
       >
+        <!-- Заголовок сверху -->
+        <div class="top-header">
+          <h1 class="section-title">I AM ROBOT</h1>
+          <div class="solana-chain">
+            <span class="chain-icon">◎</span>
+            <span>SOLANA CHAIN</span>
+          </div>
+        </div>
+
+        <!-- Индикатор прогресса -->
+        <div class="progress-indicator">
+          <div class="progress-bar">
+            <div 
+              class="progress-fill" 
+              :style="{ width: `${(scrollCount / scrollTexts.length) * 100}%` }"
+            ></div>
+          </div>
+          <p class="progress-text">{{ scrollCount }}/{{ scrollTexts.length }}</p>
+        </div>
+
+        <!-- Основной текст -->
         <div class="scroll-text-container">
+          <div class="robot-emoji">🤖</div>
           <p class="scroll-text" :class="{ fade: isScrolling }">{{ scrollText }}</p>
+          <p class="scroll-hint">Keep scrolling down ↓</p>
+        </div>
+
+        <!-- Анимация частиц при скролле -->
+        <div class="scroll-particles" v-if="isScrolling">
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
         </div>
       </section>
 
@@ -296,14 +329,21 @@ const setupScrollHandlers = () => {
   width: 100%;
   height: 100vh;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 80px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 20px 80px;
   background: linear-gradient(135deg, #000000 0%, #1a0033 25%, #000000 50%, #003333 75%, #000000 100%);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
   position: relative;
   overflow: hidden;
+  transition: background-position 0.5s ease;
+}
+
+.first-section.section-scrolling {
+  background-position: 100% 50%;
+  animation-duration: 5s;
 }
 
 .first-section::before {
@@ -320,12 +360,116 @@ const setupScrollHandlers = () => {
   pointer-events: none;
 }
 
+.top-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  animation: fadeInDown 1s ease-out;
+}
+
+.section-title {
+  font-size: clamp(28px, 6vw, 56px);
+  font-weight: 900;
+  color: #00ffff;
+  text-shadow: 
+    0 0 20px rgba(0, 255, 255, 0.8),
+    0 0 40px rgba(0, 255, 255, 0.5),
+    0 0 60px rgba(0, 255, 255, 0.3);
+  margin: 0;
+  font-family: 'Courier New', 'Monaco', monospace;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+.solana-chain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(20, 241, 149, 0.1);
+  border: 1px solid rgba(20, 241, 149, 0.3);
+  border-radius: 20px;
+  color: #14f195;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Courier New', 'Monaco', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.chain-icon {
+  font-size: 16px;
+  color: #14f195;
+}
+
+.progress-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  padding: 0 20px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00ffff, #ff00ff, #00ffff);
+  background-size: 200% 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  animation: progressGlow 2s linear infinite;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #00ffff;
+  font-family: 'Courier New', 'Monaco', monospace;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
 .scroll-text-container {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  justify-content: center;
+}
+
+.robot-emoji {
+  font-size: 80px;
+  animation: robotBounce 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.5));
+}
+
+.scroll-hint {
+  font-size: 14px;
+  color: rgba(0, 255, 255, 0.6);
+  font-family: 'Courier New', 'Monaco', monospace;
+  margin: 0;
+  animation: fadeBlink 2s ease-in-out infinite;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .scroll-text {
-  font-size: 32px;
+  font-size: clamp(24px, 5vw, 42px);
   font-weight: 600;
   color: #00ffff;
   text-shadow: 
@@ -335,16 +479,69 @@ const setupScrollHandlers = () => {
     0 2px 10px rgba(0, 0, 0, 0.8);
   transition: opacity 0.4s ease, transform 0.4s ease, color 0.4s ease;
   font-family: 'Courier New', 'Monaco', monospace;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   text-transform: uppercase;
   position: relative;
   z-index: 1;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
 }
 
 .scroll-text.fade {
   opacity: 0.3;
-  transform: translateY(15px);
+  transform: translateY(15px) scale(0.95);
   color: #00ff88;
+}
+
+.scroll-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #00ffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  animation: particleFloat 3s ease-in-out infinite;
+}
+
+.particle:nth-child(1) {
+  left: 20%;
+  top: 30%;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  left: 50%;
+  top: 20%;
+  animation-delay: 0.5s;
+}
+
+.particle:nth-child(3) {
+  left: 80%;
+  top: 40%;
+  animation-delay: 1s;
+}
+
+.particle:nth-child(4) {
+  left: 30%;
+  top: 60%;
+  animation-delay: 1.5s;
+}
+
+.particle:nth-child(5) {
+  left: 70%;
+  top: 70%;
+  animation-delay: 2s;
 }
 
 .second-section {
@@ -640,6 +837,27 @@ const setupScrollHandlers = () => {
 
 /* Адаптивность */
 @media (max-width: 768px) {
+  .first-section {
+    padding: 30px 15px 60px;
+  }
+
+  .section-title {
+    letter-spacing: 2px;
+  }
+
+  .robot-emoji {
+    font-size: 60px;
+  }
+
+  .scroll-text {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  .progress-indicator {
+    max-width: 300px;
+  }
+
   .main-title {
     letter-spacing: 2px;
   }
@@ -692,6 +910,76 @@ const setupScrollHandlers = () => {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    text-shadow: 
+      0 0 20px rgba(0, 255, 255, 0.8),
+      0 0 40px rgba(0, 255, 255, 0.5),
+      0 0 60px rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    text-shadow: 
+      0 0 30px rgba(0, 255, 255, 1),
+      0 0 60px rgba(0, 255, 255, 0.8),
+      0 0 90px rgba(0, 255, 255, 0.5);
+  }
+}
+
+@keyframes progressGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes robotBounce {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes fadeBlink {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) translateX(50px);
+    opacity: 0;
   }
 }
 </style>
