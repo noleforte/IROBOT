@@ -66,6 +66,12 @@ const toggleCheckbox = () => {
       isLoading.value = false
       isSuccess.value = true
       console.log('Загрузка завершена')
+      
+      // Закрываем модальное окно через 3 секунды после показа успеха
+      setTimeout(() => {
+        isVisible.value = false
+        console.log('Модальное окно закрыто')
+      }, 3000)
     }, 3000)
   }, 300)
 }
