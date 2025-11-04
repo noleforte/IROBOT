@@ -13,7 +13,7 @@
               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/>
             </svg>
           </span>
-          <span class="checkbox-text">I'm a robot</span>
+          <span class="checkbox-text">I'm a robot (not a bot, promise)</span>
         </div>
         <div class="recaptcha-brand">
           <div class="recaptcha-logo">
@@ -34,7 +34,7 @@
       <!-- Шаг 3: Успех -->
       <div v-if="isSuccess" class="success-container">
         <div class="success-icon">✓</div>
-        <p class="success-text">Successfully, you are really robot, welcome!</p>
+        <p class="success-text">Welcome to the Robot Army! 🤖 Let's make some gains together.</p>
       </div>
     </div>
   </div>
