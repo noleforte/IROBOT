@@ -37,4 +37,13 @@ body::-webkit-scrollbar {
 *::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* Кастомный курсор */
+* {
+  cursor: url('/cursor.png'), auto;
+}
+
+a, button, .checkbox-label, .social-btn {
+  cursor: url('/cursor.png'), pointer;
+}
 </style>
