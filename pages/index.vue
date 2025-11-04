@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container" v-if="pageLoaded">
     <!-- Первая секция - на весь экран -->
     <section 
       ref="firstSection"
@@ -15,20 +15,27 @@
       <RobotModal />
     </section>
   </div>
+  <div v-else class="loading-screen">
+    <div class="loading-spinner"></div>
+  </div>
 </template>
 
 <script setup>
 const firstSection = ref(null)
 const scrollCount = ref(0)
-const scrollText = ref('Scroll down')
+const scrollText = ref('Scroll Down')
 const isScrolling = ref(false)
 const showSecondSection = ref(false)
 const canScroll = ref(true)
+const pageLoaded = ref(false)
 
 const scrollTexts = [
-  'Scroll down',
-  'Harder',
-  'You are freak'
+  'Scroll Down',
+  'Scroll Harder',
+  'Just continue scrolling',
+  'A little bit',
+  'You are freak',
+  'Here we go, nice man, you do this'
 ]
 
 const handleScroll = () => {
@@ -45,7 +52,7 @@ const handleScroll = () => {
     setTimeout(() => {
       isScrolling.value = false
       canScroll.value = true
-    }, 500)
+    }, 1000)
   } else {
     // Переход на вторую секцию
     showSecondSection.value = true
@@ -58,8 +65,15 @@ const handleScroll = () => {
   }
 }
 
-// Обработка скролла колесиком мыши
-onMounted(() => {
+// Предзагрузка компонентов и показ страницы
+onMounted(async () => {
+  // Имитация загрузки модалки и других компонентов
+  await new Promise(resolve => setTimeout(resolve, 500))
+  pageLoaded.value = true
+  
+  // Даем время на рендер
+  await nextTick()
+  
   let scrollTimeout
   let isProcessing = false
   
@@ -81,7 +95,7 @@ onMounted(() => {
           handleScroll()
           setTimeout(() => {
             isProcessing = false
-          }, 600)
+          }, 1000)
         }, 50)
       }
     }
@@ -120,10 +134,36 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Скрытие scrollbar для всех браузеров */
 .page-container {
   width: 100%;
   height: 100vh;
   overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE и Edge */
+}
+
+.page-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.loading-screen {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(0, 255, 255, 0.3);
+  border-top-color: #00ffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .first-section {
@@ -133,9 +173,25 @@ onMounted(() => {
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 80px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #000000 0%, #1a0033 25%, #000000 50%, #003333 75%, #000000 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
   position: relative;
   overflow: hidden;
+}
+
+.first-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(0, 255, 0, 0.05) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .scroll-text-container {
@@ -145,15 +201,24 @@ onMounted(() => {
 .scroll-text {
   font-size: 32px;
   font-weight: 600;
-  color: white;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: #00ffff;
+  text-shadow: 
+    0 0 10px rgba(0, 255, 255, 0.8),
+    0 0 20px rgba(0, 255, 255, 0.5),
+    0 0 30px rgba(0, 255, 255, 0.3),
+    0 2px 10px rgba(0, 0, 0, 0.8);
+  transition: opacity 0.4s ease, transform 0.4s ease, color 0.4s ease;
+  font-family: 'Courier New', 'Monaco', monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
 }
 
 .scroll-text.fade {
-  opacity: 0.5;
-  transform: translateY(10px);
+  opacity: 0.3;
+  transform: translateY(15px);
+  color: #00ff88;
 }
 
 .second-section {
@@ -162,6 +227,27 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: #0a0a0a;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
