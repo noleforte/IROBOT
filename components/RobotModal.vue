@@ -29,7 +29,6 @@
       <!-- Шаг 2: Загрузка -->
       <div v-if="isChecked && isLoading" class="loading-container">
         <div class="spinner"></div>
-        <p class="loading-text">I'm a robot</p>
       </div>
 
       <!-- Шаг 3: Успех -->
@@ -202,7 +201,6 @@ const toggleCheckbox = () => {
   animation: spin 1s linear infinite;
 }
 
-.loading-text,
 .success-text {
   font-size: 18px;
   font-weight: 500;
