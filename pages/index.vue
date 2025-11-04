@@ -25,7 +25,6 @@
         v-if="showSecondSection" 
         class="second-section"
       >
-        <RobotModal key="robot-modal-2" />
       </section>
     </div>
   </div>
