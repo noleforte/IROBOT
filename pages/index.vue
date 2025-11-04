@@ -1,22 +1,31 @@
 <template>
-  <div class="page-container" v-if="pageLoaded">
-    <!-- Первая секция - на весь экран -->
-    <section 
-      ref="firstSection"
-      class="first-section"
-    >
-      <div class="scroll-text-container">
-        <p class="scroll-text" :class="{ fade: isScrolling }">{{ scrollText }}</p>
-      </div>
-    </section>
+  <div>
+    <!-- Экран загрузки -->
+    <div v-if="!pageLoaded" class="loading-screen">
+      <div class="loading-spinner"></div>
+    </div>
 
-    <!-- Вторая секция - с модальным окном (загружается заранее, но скрыта) -->
-    <section class="second-section" v-if="modalReady" :style="{ display: showSecondSection ? 'flex' : 'none' }">
+    <!-- Основной контейнер -->
+    <div v-if="pageLoaded" class="page-container">
+      <!-- Первая секция - на весь экран -->
+      <section 
+        ref="firstSection"
+        class="first-section"
+      >
+        <div class="scroll-text-container">
+          <p class="scroll-text" :class="{ fade: isScrolling }">{{ scrollText }}</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Вторая секция - с модальным окном (загружается сразу, но скрыта за пределами экрана) -->
+    <section 
+      v-if="modalReady" 
+      class="second-section" 
+      :class="{ 'section-visible': showSecondSection }"
+    >
       <RobotModal key="robot-modal" />
     </section>
-  </div>
-  <div v-else class="loading-screen">
-    <div class="loading-spinner"></div>
   </div>
 </template>
 
@@ -71,9 +80,13 @@ const handleScroll = async () => {
 onBeforeMount(async () => {
   // Предзагружаем модалку ДО монтирования страницы
   try {
-    await import('~/components/RobotModal.vue')
+    const modalModule = await import('~/components/RobotModal.vue')
+    // Принудительно устанавливаем modalReady в true сразу
     modalReady.value = true
-    console.log('Modal preloaded successfully')
+    console.log('Modal preloaded successfully in onBeforeMount')
+    
+    // Даем Vue время обработать изменение
+    await nextTick()
   } catch (error) {
     console.error('Error preloading modal:', error)
     modalReady.value = true // Все равно показываем, если ошибка
@@ -81,18 +94,21 @@ onBeforeMount(async () => {
 })
 
 onMounted(async () => {
-  // Если модалка еще не загружена, ждем
+  // Убеждаемся, что модалка загружена
   if (!modalReady.value) {
     try {
       await import('~/components/RobotModal.vue')
       modalReady.value = true
+      await nextTick()
     } catch (error) {
       modalReady.value = true
     }
   }
   
-  // Небольшая задержка для завершения загрузки
-  await new Promise(resolve => setTimeout(resolve, 50))
+  // Дополнительное время для полной загрузки компонента в DOM
+  await nextTick()
+  await new Promise(resolve => setTimeout(resolve, 100))
+  
   pageLoaded.value = true
   
   // Даем время на рендер
@@ -252,6 +268,22 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   background: #0a0a0a;
+  position: fixed;
+  top: 100vh;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity 0.3s ease, top 0s 0.3s;
+}
+
+.second-section.section-visible {
+  position: relative;
+  top: 0;
+  opacity: 1;
+  pointer-events: all;
+  z-index: 1;
+  transition: opacity 0.3s ease;
 }
 
 @keyframes gradientShift {
