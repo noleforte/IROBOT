@@ -1,12 +1,15 @@
 <template>
   <div>
-    <!-- Экран загрузки -->
-    <div v-if="!pageLoaded" class="loading-screen">
+    <!-- Сначала показываем модалку -->
+    <RobotModal v-if="modalReady && !modalCompleted" key="robot-modal" @modal-closed="handleModalClosed" />
+
+    <!-- Экран загрузки (пока модалка не загружена) -->
+    <div v-if="!modalReady && !pageLoaded" class="loading-screen">
       <div class="loading-spinner"></div>
     </div>
 
-    <!-- Основной контейнер -->
-    <div v-if="pageLoaded" class="page-container">
+    <!-- Основной контейнер (показывается после закрытия модалки) -->
+    <div v-if="pageLoaded && modalCompleted" class="page-container">
       <!-- Первая секция - на весь экран -->
       <section 
         ref="firstSection"
@@ -16,16 +19,15 @@
           <p class="scroll-text" :class="{ fade: isScrolling }">{{ scrollText }}</p>
         </div>
       </section>
-    </div>
 
-    <!-- Вторая секция - с модальным окном (загружается сразу, но скрыта за пределами экрана) -->
-    <section 
-      v-if="modalReady" 
-      class="second-section" 
-      :class="{ 'section-visible': showSecondSection }"
-    >
-      <RobotModal key="robot-modal" />
-    </section>
+      <!-- Вторая секция - с модальным окном -->
+      <section 
+        v-if="showSecondSection" 
+        class="second-section"
+      >
+        <RobotModal key="robot-modal-2" />
+      </section>
+    </div>
   </div>
 </template>
 
@@ -38,6 +40,7 @@ const showSecondSection = ref(false)
 const canScroll = ref(true)
 const pageLoaded = ref(false)
 const modalReady = ref(false)
+const modalCompleted = ref(false)
 
 const scrollTexts = [
   'Scroll Down',
@@ -76,20 +79,27 @@ const handleScroll = async () => {
   }
 }
 
-// Предзагрузка компонентов и показ страницы
+// Обработчик закрытия модалки
+const handleModalClosed = () => {
+  modalCompleted.value = true
+  // После закрытия модалки показываем страницу
+  setTimeout(() => {
+    pageLoaded.value = true
+    setupScrollHandlers()
+  }, 300)
+}
+
+// Предзагрузка модалки и показ страницы
 onBeforeMount(async () => {
   // Предзагружаем модалку ДО монтирования страницы
   try {
-    const modalModule = await import('~/components/RobotModal.vue')
-    // Принудительно устанавливаем modalReady в true сразу
+    await import('~/components/RobotModal.vue')
     modalReady.value = true
     console.log('Modal preloaded successfully in onBeforeMount')
-    
-    // Даем Vue время обработать изменение
     await nextTick()
   } catch (error) {
     console.error('Error preloading modal:', error)
-    modalReady.value = true // Все равно показываем, если ошибка
+    modalReady.value = true
   }
 })
 
@@ -104,15 +114,12 @@ onMounted(async () => {
       modalReady.value = true
     }
   }
-  
-  // Дополнительное время для полной загрузки компонента в DOM
-  await nextTick()
-  await new Promise(resolve => setTimeout(resolve, 100))
-  
-  pageLoaded.value = true
-  
+})
+
+// Настройка обработчиков скролла (вызывается после закрытия модалки)
+const setupScrollHandlers = () => {
   // Даем время на рендер
-  await nextTick()
+  nextTick().then(() => {
   
   let scrollTimeout
   let isProcessing = false
@@ -165,12 +172,13 @@ onMounted(async () => {
   
   window.addEventListener('wheel', preventScroll, { passive: false })
   
-  onUnmounted(() => {
-    window.removeEventListener('wheel', handleWheel)
-    window.removeEventListener('wheel', preventScroll)
-    window.removeEventListener('keydown', handleKeyDown)
+    onUnmounted(() => {
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('wheel', preventScroll)
+      window.removeEventListener('keydown', handleKeyDown)
+    })
   })
-})
+}
 </script>
 
 <style scoped>
@@ -268,22 +276,6 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   background: #0a0a0a;
-  position: fixed;
-  top: 100vh;
-  left: 0;
-  opacity: 0;
-  pointer-events: none;
-  z-index: -1;
-  transition: opacity 0.3s ease, top 0s 0.3s;
-}
-
-.second-section.section-visible {
-  position: relative;
-  top: 0;
-  opacity: 1;
-  pointer-events: all;
-  z-index: 1;
-  transition: opacity 0.3s ease;
 }
 
 @keyframes gradientShift {

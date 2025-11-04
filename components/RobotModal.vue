@@ -41,6 +41,8 @@
 </template>
 
 <script setup>
+const emit = defineEmits(['modal-closed'])
+
 const isVisible = ref(true)
 const isChecked = ref(false)
 const isLoading = ref(false)
@@ -71,6 +73,8 @@ const toggleCheckbox = () => {
       setTimeout(() => {
         isVisible.value = false
         console.log('Модальное окно закрыто')
+        // Эмитим событие о закрытии модалки
+        emit('modal-closed')
       }, 3000)
     }, 3000)
   }, 300)
