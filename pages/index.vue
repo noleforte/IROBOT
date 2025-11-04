@@ -52,7 +52,7 @@ const handleScroll = () => {
     setTimeout(() => {
       isScrolling.value = false
       canScroll.value = true
-    }, 1000)
+    }, 5000)
   } else {
     // Переход на вторую секцию
     showSecondSection.value = true
